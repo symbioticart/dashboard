@@ -1,52 +1,75 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { OuraService } from '../services/ouraService';
+
+// Helper function to format date to YYYY-MM-DD
+const getFormattedDate = (date) => date.toISOString().split('T')[0];
 
 const DataDisplay = ({ token }) => {
     const [data, setData] = useState({
         sleep: null,
-        activity: null,
-        readiness: null,
-        stress: null,
-        spo2: null
+        heartRate: null,
+        workout: null,
+        personalInfo: null
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
 
-    const fetchData = async () => {
-        if (!token) return;
+    // Calculate initial start date (7 days ago) and end date (current date)
+    const initialFetchEndDate = new Date();
+    const initialFetchStartDate = new Date(initialFetchEndDate);
+    initialFetchStartDate.setDate(initialFetchEndDate.getDate() - 7);
+
+    // State for the date picker
+    const [selectedStartDate, setSelectedStartDate] = useState(getFormattedDate(initialFetchStartDate));
+    // State to store the actual end date used for the last successful fetch (current date)
+    const [actualFetchEndDate, setActualFetchEndDate] = useState(getFormattedDate(initialFetchEndDate));
+
+    const fetchData = useCallback(async () => {
+        if (!token || !selectedStartDate) return; // Ensure token and start date are available
 
         setLoading(true);
         setError('');
 
         try {
-            // Получаем даты для последних 7 дней
-            const endDate = new Date().toISOString().split('T')[0];
-            const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-                .toISOString()
-                .split('T')[0];
+            // Always fetch data up to the current date
+            const currentEndDate = getFormattedDate(new Date());
+            setActualFetchEndDate(currentEndDate); // Update actualFetchEndDate state for export naming
 
-            // Получаем все данные параллельно
-            const [sleep, activity, readiness, stress, spo2] = await Promise.all([
-                OuraService.getSleepData(startDate, endDate),
-                OuraService.getActivityData(startDate, endDate),
-                OuraService.getReadinessData(startDate, endDate),
-                OuraService.getStressData(startDate, endDate),
-                OuraService.getSpO2Data(startDate, endDate)
+            const [sleep, heartRate, workout, personalInfo] = await Promise.all([
+                OuraService.getSleepData(selectedStartDate, currentEndDate),
+                OuraService.getHeartRateData(selectedStartDate, currentEndDate),
+                OuraService.getWorkoutData(selectedStartDate, currentEndDate),
+                OuraService.getPersonalInfo()
             ]);
 
-            setData({ sleep, activity, readiness, stress, spo2 });
+            setData({ sleep, heartRate, workout, personalInfo });
         } catch (err) {
             setError('Ошибка при получении данных: ' + err.message);
         } finally {
             setLoading(false);
         }
-    };
+    }, [token, selectedStartDate]); // Depend on token and selectedStartDate
 
     useEffect(() => {
-        if (token) {
+        if (token && selectedStartDate) {
             fetchData();
         }
-    }, [token]);
+    }, [token, selectedStartDate, fetchData]); // Add selectedStartDate to dependencies
+
+    const handleExportData = () => {
+        // Use selectedStartDate and actualFetchEndDate for the filename
+        const filename = `oura_data_${selectedStartDate}_to_${actualFetchEndDate}.json`;
+        const jsonStr = JSON.stringify(data, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const href = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = href;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(href);
+    };
 
     if (!token) {
         return <div>Пожалуйста, введите токен для получения данных</div>;
@@ -63,6 +86,26 @@ const DataDisplay = ({ token }) => {
     return (
         <div className="data-display">
             <h2>Данные Oura Ring</h2>
+
+            <div className="date-picker-container" style={{ marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+                <label htmlFor="startDate">Начальная дата:</label>
+                <input
+                    type="date"
+                    id="startDate"
+                    value={selectedStartDate}
+                    onChange={(e) => setSelectedStartDate(e.target.value)}
+                    className="form-control"
+                    // Optional: set max date to current date
+                    max={getFormattedDate(new Date())}
+                    style={{ width: 'auto' }}
+                />
+                <p style={{ display: 'inline-block', margin: '0' }}>Конечная дата: {actualFetchEndDate}</p>
+                {data.sleep || data.heartRate || data.workout || data.personalInfo ? (
+                    <button onClick={handleExportData} className="btn btn-primary" style={{ marginLeft: 'auto' }}>
+                        Экспортировать данные в .json
+                    </button>
+                ) : null}
+            </div>
             
             {/* Сон */}
             <section className="data-section">
@@ -80,63 +123,53 @@ const DataDisplay = ({ token }) => {
                 )}
             </section>
 
-            {/* Активность */}
+            {/* Пульс */}
             <section className="data-section">
-                <h3>Активность</h3>
-                {data.activity && (
+                <h3>Пульс</h3>
+                {data.heartRate && (data.heartRate.data && data.heartRate.data.length > 0 ? (
                     <div className="data-grid">
-                        {data.activity.data.map((day, index) => (
+                        {data.heartRate.data.slice(0, 7).map((entry, index) => (
                             <div key={index} className="data-card">
-                                <h4>{day.day}</h4>
-                                <p>Шаги: {day.steps}</p>
-                                <p>Калории: {day.calories_active}</p>
+                                <h4>{new Date(entry.timestamp).toLocaleDateString()}</h4>
+                                <p>BPM: {entry.bpm}</p>
                             </div>
                         ))}
                     </div>
-                )}
+                ) : (
+                    <p>Нет данных о пульсе за последние 7 дней.</p>
+                ))}
             </section>
 
-            {/* Готовность */}
+            {/* Тренировки */}
             <section className="data-section">
-                <h3>Готовность</h3>
-                {data.readiness && (
+                <h3>Тренировки</h3>
+                {data.workout && (data.workout.data && data.workout.data.length > 0 ? (
                     <div className="data-grid">
-                        {data.readiness.data.map((day, index) => (
+                        {data.workout.data.map((workout, index) => (
                             <div key={index} className="data-card">
-                                <h4>{day.day}</h4>
-                                <p>Балл: {day.score}</p>
+                                <h4>{workout.day} - {workout.activity}</h4>
+                                <p>Калории: {workout.calories}</p>
+                                <p>Дистанция: {workout.distance ? `${(workout.distance / 1000).toFixed(2)} км` : 'N/A'}</p>
                             </div>
                         ))}
                     </div>
-                )}
+                ) : (
+                    <p>Нет данных о тренировках за последние 7 дней.</p>
+                ))}
             </section>
 
-            {/* Стресс */}
+            {/* Личная информация */}
             <section className="data-section">
-                <h3>Стресс</h3>
-                {data.stress && (
+                <h3>Личная информация</h3>
+                {data.personalInfo && (
                     <div className="data-grid">
-                        {data.stress.data.map((day, index) => (
-                            <div key={index} className="data-card">
-                                <h4>{day.day}</h4>
-                                <p>Время в стрессе: {day.stress_duration / 3600}ч</p>
-                            </div>
-                        ))}
-                    </div>
-                )}
-            </section>
-
-            {/* SpO2 */}
-            <section className="data-section">
-                <h3>SpO2</h3>
-                {data.spo2 && (
-                    <div className="data-grid">
-                        {data.spo2.data.map((day, index) => (
-                            <div key={index} className="data-card">
-                                <h4>{day.day}</h4>
-                                <p>Средний SpO2: {day.average_spo2}%</p>
-                            </div>
-                        ))}
+                        <div className="data-card">
+                            <p>Возраст: {data.personalInfo.age}</p>
+                            <p>Вес: {data.personalInfo.weight} кг</p>
+                            <p>Рост: {data.personalInfo.height} м</p>
+                            <p>Пол: {data.personalInfo.biological_sex}</p>
+                            <p>Email: {data.personalInfo.email}</p>
+                        </div>
                     </div>
                 )}
             </section>
