@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oura Ring Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app">
+        <header class="app-header">
+            <h1>Oura Ring Data Dashboard</h1>
+        </header>
+        <main class="app-main">
+            <div class="token-input-container">
+                <form id="tokenForm">
+                    <div class="form-group">
+                        <label for="token">Personal Access Token:</label>
+                        <input type="text" id="token" placeholder="Введите ваш токен" class="form-control">
+                    </div>
+                    <div id="errorMessage" class="error-message"></div>
+                    <div class="button-group">
+                        <button type="submit" class="btn btn-primary">Сохранить токен</button>
+                        <button type="button" id="removeToken" class="btn btn-danger" style="display: none;">Удалить токен</button>
+                    </div>
+                </form>
+            </div>
+            <div id="dataDisplay" class="data-display">
+                <div id="loadingMessage" style="display: none;">Загрузка данных...</div>
+                <div id="errorDisplay" class="error" style="display: none;"></div>
+                <div id="dataContent"></div>
+            </div>
+        </main>
+    </div>
+    <script type="module" src="app.js"></script>
+</body>
+</html> 
