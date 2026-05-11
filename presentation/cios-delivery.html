@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Building the Delivery Layer for CIOS</title>
+<style>
+  @page {
+    size: 1280px 720px;
+    margin: 0;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    font-family: "Inter", "Helvetica Neue", Arial, sans-serif;
+    color: #21201F;
+    background: #FFFFFF;
+    font-feature-settings: "ss01", "cv11";
+  }
+
+  .slide {
+    width: 1280px;
+    height: 720px;
+    page-break-after: always;
+    position: relative;
+    padding: 64px 80px;
+    background: #FFFFFF;
+    overflow: hidden;
+  }
+
+  .slide:last-child {
+    page-break-after: auto;
+  }
+
+  /* Yandex-inspired header bar */
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #E7E5E1;
+    padding-bottom: 16px;
+    margin-bottom: 40px;
+    font-size: 13px;
+    color: #8A8580;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .header .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .header .dot {
+    width: 10px;
+    height: 10px;
+    background: #FC3F1D;
+    border-radius: 2px;
+  }
+
+  .footer {
+    position: absolute;
+    left: 80px;
+    right: 80px;
+    bottom: 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #A8A39C;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .eyebrow {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FC3F1D;
+    margin-bottom: 16px;
+  }
+
+  h1.title {
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.025em;
+    margin: 0 0 24px 0;
+    color: #131211;
+  }
+
+  h2.headline {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 28px 0;
+    color: #131211;
+    max-width: 1040px;
+  }
+
+  h3.section {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 12px 0;
+    letter-spacing: -0.01em;
+    color: #131211;
+  }
+
+  ul.bullets {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  ul.bullets li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 20px;
+    line-height: 1.45;
+    margin-bottom: 14px;
+    color: #2C2A27;
+  }
+
+  ul.bullets li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 12px;
+    width: 8px;
+    height: 8px;
+    background: #FFCC00;
+    border-radius: 1px;
+  }
+
+  ul.bullets.sub li {
+    font-size: 17px;
+    padding-left: 20px;
+    margin-bottom: 8px;
+    color: #54504A;
+  }
+
+  ul.bullets.sub li::before {
+    width: 6px;
+    height: 6px;
+    background: #C9C5BE;
+    top: 11px;
+  }
+
+  /* Core message callout — Yandex-style yellow block */
+  .core {
+    margin-top: 32px;
+    background: #FFCC00;
+    padding: 24px 28px;
+    border-radius: 4px;
+    max-width: 880px;
+  }
+
+  .core .label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #131211;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  .core .body {
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: #131211;
+    letter-spacing: -0.005em;
+  }
+
+  /* Title slide */
+  .slide.title-slide {
+    background: #131211;
+    color: #FFFFFF;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .slide.title-slide .header {
+    border-color: #2A2825;
+    color: #8A8580;
+  }
+
+  .slide.title-slide .footer {
+    color: #6C6862;
+  }
+
+  .slide.title-slide .title-block {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .slide.title-slide .eyebrow {
+    color: #FFCC00;
+  }
+
+  .slide.title-slide h1.title {
+    color: #FFFFFF;
+    font-size: 88px;
+    max-width: 1040px;
+  }
+
+  .slide.title-slide .subtitle {
+    font-size: 24px;
+    font-weight: 400;
+    color: #A8A39C;
+    max-width: 800px;
+    line-height: 1.4;
+    margin-top: 8px;
+  }
+
+  .slide.title-slide .accent {
+    display: inline-block;
+    width: 80px;
+    height: 6px;
+    background: #FC3F1D;
+    margin-bottom: 32px;
+  }
+
+  /* Two-column layout */
+  .cols {
+    display: flex;
+    gap: 56px;
+    align-items: flex-start;
+  }
+
+  .cols > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .cols.three {
+    gap: 24px;
+  }
+
+  .card {
+    background: #F7F5F1;
+    border-radius: 8px;
+    padding: 24px 22px;
+    border-top: 4px solid #FFCC00;
+  }
+
+  .card.red { border-top-color: #FC3F1D; }
+  .card.dark { border-top-color: #131211; }
+
+  .card h3 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.01em;
+    color: #131211;
+  }
+
+  .card .role {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8A8580;
+    margin-bottom: 16px;
+  }
+
+  .card ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .card ul li {
+    font-size: 16px;
+    line-height: 1.4;
+    color: #2C2A27;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 8px;
+  }
+
+  .card ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 6px;
+    height: 6px;
+    background: #C9C5BE;
+    border-radius: 1px;
+  }
+
+  /* Evidence box */
+  .evidence {
+    margin-top: 24px;
+    border-left: 3px solid #FC3F1D;
+    padding: 4px 0 4px 20px;
+  }
+
+  .evidence .label {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #FC3F1D;
+    margin-bottom: 10px;
+  }
+
+  .evidence ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .evidence ul li {
+    font-size: 16px;
+    line-height: 1.4;
+    color: #2C2A27;
+    margin-bottom: 6px;
+  }
+
+  /* Metrics row */
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-top: 28px;
+  }
+
+  .metric {
+    background: #F7F5F1;
+    border-radius: 8px;
+    padding: 22px 24px;
+  }
+
+  .metric .value {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #131211;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .metric .value .unit {
+    font-size: 18px;
+    color: #8A8580;
+    font-weight: 500;
+    margin-left: 6px;
+  }
+
+  .metric .label {
+    font-size: 14px;
+    color: #54504A;
+    line-height: 1.35;
+  }
+
+  /* Slide-specific */
+  .ask-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    margin-top: 8px;
+  }
+
+  .ask-block h3 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #FC3F1D;
+    margin: 0 0 14px 0;
+  }
+
+  .ask-block ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .ask-block ul li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 19px;
+    line-height: 1.4;
+    color: #2C2A27;
+    margin-bottom: 10px;
+  }
+
+  .ask-block ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 11px;
+    width: 8px;
+    height: 8px;
+    background: #FFCC00;
+    border-radius: 1px;
+  }
+
+  .num {
+    font-variant-numeric: tabular-nums;
+  }
+
+  strong { color: #131211; font-weight: 700; }
+
+</style>
+</head>
+<body>
+
+<!-- SLIDE 0: TITLE -->
+<section class="slide title-slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>CIOS — Internal Memo</span></div>
+    <div>2026</div>
+  </div>
+
+  <div class="title-block">
+    <span class="accent"></span>
+    <div class="eyebrow">Delivery Strategy</div>
+    <h1 class="title">Building the Delivery Layer for CIOS</h1>
+    <div class="subtitle">From product ideas to reliable fund delivery — why we need a second developer now.</div>
+  </div>
+
+  <div class="footer">
+    <div>Prepared by Nikolai &amp; Nikita</div>
+    <div>00 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 1: WHY NOW -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>Why now</div>
+  </div>
+
+  <div class="eyebrow">01 — Context</div>
+  <h2 class="headline">CIOS is entering a new delivery phase</h2>
+
+  <ul class="bullets">
+    <li><strong>Green Rock</strong> and <strong>Chiron</strong> are already aligning on evaluation metrics.</li>
+    <li>We need to start rolling out concrete products for funds, beginning with the <strong>evaluator</strong>.</li>
+    <li>CIOS is moving from internal building to external delivery.</li>
+  </ul>
+
+  <div class="core">
+    <div class="label">Core message</div>
+    <div class="body">This is no longer only a product-building effort. It is becoming a client-facing delivery system.</div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">01 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 2: THE BOTTLENECK -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>The bottleneck</div>
+  </div>
+
+  <div class="eyebrow">02 — Problem</div>
+  <h2 class="headline">Our limitation is delivery bandwidth, not ideas</h2>
+
+  <div class="cols">
+    <div>
+      <ul class="bullets">
+        <li>Nikolai has already designed multiple product interfaces and solutions.</li>
+        <li>The target operating model is locked in.</li>
+        <li>This model is currently blocked because key technical capacity is split across too many functions.</li>
+      </ul>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="value num">3–5<span class="unit">days</span></div>
+          <div class="label">Idea to showable prototype</div>
+        </div>
+        <div class="metric">
+          <div class="value num">1–2<span class="unit">weeks</span></div>
+          <div class="label">Full validation loop with a fund</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="evidence">
+        <div class="label">Evidence</div>
+        <ul>
+          <li><strong>4</strong> interfaces waiting for integration.</li>
+          <li><strong>3 weeks</strong> of delay in testing the fast prototype cycle.</li>
+          <li>Core AI / infrastructure work slowed down by LMS + payment + support work.</li>
+        </ul>
+      </div>
+
+      <div class="core" style="margin-top: 28px;">
+        <div class="label">Core message</div>
+        <div class="body">We are not constrained by demand or product ideas. We are constrained by execution capacity.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">02 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 3: WHAT MUST CHANGE -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>What must change</div>
+  </div>
+
+  <div class="eyebrow">03 — Solution</div>
+  <h2 class="headline" style="font-size: 38px; margin-bottom: 22px;">Separate three functions currently overloaded into one workflow</h2>
+
+  <div class="cols three">
+    <div class="card">
+      <div class="role">Person</div>
+      <h3>Nikolai</h3>
+      <ul>
+        <li>Product discovery with funds</li>
+        <li>Workflow analysis</li>
+        <li>Solution design</li>
+        <li>Demo / feedback / iteration loop</li>
+      </ul>
+    </div>
+
+    <div class="card red">
+      <div class="role">Person</div>
+      <h3>Nikita</h3>
+      <ul>
+        <li>Core infrastructure</li>
+        <li>Architecture</li>
+        <li>AI / backend / complex technical systems</li>
+      </ul>
+    </div>
+
+    <div class="card dark">
+      <div class="role">To hire</div>
+      <h3>New hire</h3>
+      <ul>
+        <li>Maintenance</li>
+        <li>Reliability</li>
+        <li>Productionization</li>
+        <li>Turning product interfaces into production-ready releases</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="core" style="margin-top: 22px; padding: 18px 24px;">
+    <div class="label">Core message</div>
+    <div class="body" style="font-size: 19px;">The team does not need “more help.” It needs a correct functional split.</div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">03 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 4: COMMERCIAL -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>Commercial impact</div>
+  </div>
+
+  <div class="eyebrow">04 — Commercial</div>
+  <h2 class="headline">To charge funds, the system must be reliable and predictable</h2>
+
+  <div class="cols">
+    <div>
+      <ul class="bullets">
+        <li>Funds will not only pay for ideas.</li>
+        <li>They will pay for:</li>
+      </ul>
+      <ul class="bullets sub" style="margin-left: 24px;">
+        <li>Usable tools</li>
+        <li>Predictable rollout</li>
+        <li>Stable performance</li>
+        <li>Ongoing maintenance</li>
+      </ul>
+      <ul class="bullets" style="margin-top: 14px;">
+        <li>Without a dedicated production/reliability layer, monetization is weaker and slower.</li>
+      </ul>
+    </div>
+
+    <div>
+      <div class="core" style="margin-top: 0;">
+        <div class="label">Core message</div>
+        <div class="body">The new hire is part of the commercial model — not just part of the engineering team.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">04 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 5: EXPECTED OUTCOME -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>Expected outcome</div>
+  </div>
+
+  <div class="eyebrow">05 — Outcome</div>
+  <h2 class="headline" style="font-size: 38px; margin-bottom: 22px;">A fast product iteration engine across multiple funds</h2>
+
+  <div class="cols">
+    <div>
+      <h3 class="section">With this setup, we can</h3>
+      <ul class="bullets" style="font-size: 17px;">
+        <li style="font-size: 17px; margin-bottom: 10px;">Move Nikolai into his highest-value role.</li>
+        <li style="font-size: 17px; margin-bottom: 10px;">Keep Nikita focused on core technical leverage.</li>
+        <li style="font-size: 17px; margin-bottom: 10px;">Establish a reliable shipping layer for releases.</li>
+        <li style="font-size: 17px; margin-bottom: 10px;">Run weekly / biweekly validation cycles with funds.</li>
+        <li style="font-size: 17px; margin-bottom: 10px;">Test products sequentially across 2–3 funds.</li>
+      </ul>
+    </div>
+
+    <div>
+      <h3 class="section">Target operating cadence</h3>
+      <div class="metric" style="margin-top: 10px;">
+        <div class="value num">3–5<span class="unit">days</span></div>
+        <div class="label">Showable prototype</div>
+      </div>
+      <div class="metric" style="margin-top: 12px;">
+        <div class="value num">1–2<span class="unit">weeks</span></div>
+        <div class="label">Validated loop with a fund</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="core" style="margin-top: 18px; padding: 18px 24px;">
+    <div class="label">Core message</div>
+    <div class="body" style="font-size: 19px;">This hire increases speed, quality, and monetizable throughput at the same time.</div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">05 / 06</div>
+  </div>
+</section>
+
+<!-- SLIDE 6: THE ASK -->
+<section class="slide">
+  <div class="header">
+    <div class="brand"><span class="dot"></span><span>Building the Delivery Layer for CIOS</span></div>
+    <div>The ask</div>
+  </div>
+
+  <div class="eyebrow">06 — Decision</div>
+  <h2 class="headline">Hire one Product / Implementation Engineer now</h2>
+
+  <div class="ask-grid">
+    <div class="ask-block">
+      <h3>Role focus</h3>
+      <ul>
+        <li>Maintenance and system operability</li>
+        <li>Productionization of product interfaces</li>
+        <li>Integration support</li>
+        <li>Release support for fund-facing products</li>
+      </ul>
+    </div>
+    <div class="ask-block">
+      <h3>Business rationale</h3>
+      <ul>
+        <li>Unlock evaluator rollout</li>
+        <li>Support Green Rock and Chiron delivery</li>
+        <li>Reduce overload on key people</li>
+        <li>Build the delivery layer CIOS now needs</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="core">
+    <div class="label">Final message</div>
+    <div class="body">Without this role, we are limiting growth not by market demand, but by delivery bandwidth.</div>
+  </div>
+
+  <div class="footer">
+    <div>Building the Delivery Layer for CIOS</div>
+    <div class="num">06 / 06</div>
+  </div>
+</section>
+
+</body>
+</html>
