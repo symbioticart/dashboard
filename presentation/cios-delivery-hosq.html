@@ -2,59 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Building the delivery layer — hosq style</title>
+<title>hosq · cios delivery memo</title>
 <style>
-  @font-face {
-    font-family: "Cera Pro";
-    src: url("fonts/DMSans-Regular.ttf") format("truetype");
-    font-weight: 400;
-    font-style: normal;
-  }
-  @font-face {
-    font-family: "Cera Pro";
-    src: url("fonts/DMSans-Medium.ttf") format("truetype");
-    font-weight: 500;
-    font-style: normal;
-  }
-  @font-face {
-    font-family: "Cera Pro";
-    src: url("fonts/DMSans-Bold.ttf") format("truetype");
-    font-weight: 700;
-    font-style: normal;
-  }
+  @font-face { font-family: "Cera Pro"; src: url("fonts/DMSans-Regular.ttf") format("truetype"); font-weight: 400; font-style: normal; }
+  @font-face { font-family: "Cera Pro"; src: url("fonts/DMSans-Medium.ttf") format("truetype"); font-weight: 500; font-style: normal; }
+  @font-face { font-family: "Cera Pro"; src: url("fonts/DMSans-Bold.ttf") format("truetype"); font-weight: 700; font-style: normal; }
 
   :root {
-    --brand-primary: #FF6F55;
-    --brand-secondary: #C47CF1;
-    --brand-accent: #14B672;
-    --brand-accent-blue: #56A4CB;
-    --brand-accent-pink: #E770C3;
-
-    --brand-darkest: #231F20;
-    --brand-dark: #4A4545;
-    --brand-readable-mid: #6B6566;
-    --brand-mid: #9A9596;
-    --brand-light: #C5C4C3;
-    --brand-cream: #EBE2D6;
-    --brand-cream-warm: #F1E8DB;
-    --brand-cream-blush: #E8DCD4;
-
-    --font-body: "Cera Pro", "DM Sans", "Inter", Arial, sans-serif;
+    --hosq-coral:#FF6F55; --hosq-violet:#C47CF1; --hosq-green:#14B672; --hosq-blue:#56A4CB; --hosq-pink:#E770C3;
+    --hosq-dark:#231F20; --hosq-cream:#EBE2D6; --hosq-blush:#E8DCD4; --hosq-paper:#F5EFE7;
+    --hosq-ink-2:#6B6566; --hosq-ink-3:#9A9596;
+    --hosq-line:rgba(35,31,32,0.10); --hosq-line-2:rgba(35,31,32,0.18);
+    --hosq-good:#14B672; --hosq-warn:#E0A23A; --hosq-bad:#D8553F;
+    --font-sans:"Cera Pro","DM Sans",-apple-system,system-ui,sans-serif;
   }
 
-  @page {
-    size: 1280px 720px;
-    margin: 0;
-  }
-
+  @page { size: 1280px 720px; margin: 0; }
   * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
-  html, body {
-    margin: 0;
-    padding: 0;
-    font-family: var(--font-body);
-    color: var(--brand-darkest);
-    background: var(--brand-cream);
-    font-size: 16px;
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: var(--font-sans);
+    font-weight: 400; font-size: 15px; line-height: 1.6;
+    color: var(--hosq-dark);
+    background: var(--hosq-cream);
   }
 
   .slide {
@@ -62,643 +32,800 @@
     height: 720px;
     page-break-after: always;
     position: relative;
-    padding: 56px 64px 64px 64px;
-    background: var(--brand-cream);
+    background: var(--hosq-cream);
     overflow: hidden;
-  }
-
-  /* Subtle edge gradient overlay (peach/green tints) — per spec */
-  .slide.content::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background:
-      radial-gradient(circle at -10% 110%, rgba(20,182,114,0.10), transparent 35%),
-      radial-gradient(circle at 110% -10%, rgba(255,111,85,0.10), transparent 38%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .slide > * { position: relative; z-index: 1; }
-
-  /* Category label — UPPERCASE, bold, 0.12em tracking */
-  .category {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 14px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--brand-darkest);
-    margin: 0 0 28px 0;
-  }
-
-  .category .num { color: var(--brand-readable-mid); margin-right: 12px; }
-
-  /* Slide title — Cera Pro Medium 62pt (per slide_override) */
-  h1.slide-title {
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 62px;
-    line-height: 1.08;
-    letter-spacing: -0.015em;
-    color: var(--brand-darkest);
-    margin: 0 0 32px 0;
-    max-width: 1000px;
-  }
-
-  h2.section-title {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 24px;
-    line-height: 1.3;
-    color: var(--brand-darkest);
-    margin: 0 0 16px 0;
-    letter-spacing: 0;
-  }
-
-  p.lead {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 1.6;
-    color: var(--brand-darkest);
-    max-width: 880px;
-    margin: 0 0 12px 0;
-  }
-
-  p.meta {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--brand-readable-mid);
-    margin: 0;
-  }
-
-  ul.list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  ul.list > li {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 18px;
-    line-height: 1.55;
-    color: var(--brand-darkest);
-    padding: 14px 0;
-    border-bottom: 1px solid var(--brand-light);
     display: flex;
-    gap: 16px;
-    align-items: flex-start;
+    flex-direction: column;
   }
-  ul.list > li:last-child { border-bottom: none; }
-  ul.list > li .marker {
-    font-weight: 700;
-    font-size: 14px;
-    color: var(--brand-readable-mid);
-    min-width: 28px;
-    padding-top: 4px;
-    letter-spacing: 0.04em;
-  }
+  .slide:last-child { page-break-after: auto; }
 
-  /* Pill tag */
-  .tag {
-    display: inline-block;
-    padding: 8px 16px;
-    border-radius: 999px;
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    line-height: 1;
-    color: var(--brand-darkest);
-    background: #FFFFFF;
-  }
-  .tag.coral { background: var(--brand-primary); color: #FFFFFF; }
-  .tag.violet { background: var(--brand-secondary); color: var(--brand-darkest); }
-  .tag.green { background: var(--brand-accent); color: #FFFFFF; }
-
-  /* Card — white on cream */
-  .card {
-    background: #FFFFFF;
-    border-radius: 12px;
-    padding: 24px;
-  }
-  .card .role {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--brand-readable-mid);
-    margin: 0 0 12px 0;
-  }
-  .card h3 {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 22px;
-    line-height: 1.25;
-    color: var(--brand-darkest);
-    margin: 0 0 14px 0;
-  }
-  .card ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .card ul li {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 15px;
-    line-height: 1.45;
-    color: var(--brand-darkest);
-    padding: 6px 0;
-  }
-
-  .card.accent-coral { border-top: 4px solid var(--brand-primary); }
-  .card.accent-violet { border-top: 4px solid var(--brand-secondary); }
-  .card.accent-green { border-top: 4px solid var(--brand-accent); }
-
-  /* Two-column grid */
-  .grid-2 {
-    display: flex;
-    gap: 32px;
-    align-items: flex-start;
-  }
-  .grid-2 > * { flex: 1; min-width: 0; }
-
-  .grid-3 {
-    display: flex;
-    gap: 20px;
-    align-items: stretch;
-  }
-  .grid-3 > * { flex: 1; min-width: 0; }
-
-  /* Quote/statement block (cream surface emphasis) */
-  .statement {
-    border-left: 3px solid var(--brand-primary);
-    padding: 4px 0 4px 20px;
-    margin: 24px 0 0 0;
-    max-width: 880px;
-  }
-  .statement .label {
-    font-family: var(--font-body);
-    font-weight: 700;
-    font-size: 11px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--brand-primary);
-    margin-bottom: 8px;
-  }
-  .statement p {
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 20px;
-    line-height: 1.4;
-    color: var(--brand-darkest);
-    margin: 0;
-    letter-spacing: -0.005em;
-  }
-
-  /* Metric figure */
-  .metric {
-    background: #FFFFFF;
-    border-radius: 12px;
-    padding: 22px 24px;
-  }
-  .metric .value {
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 48px;
-    line-height: 1;
-    color: var(--brand-darkest);
-    letter-spacing: -0.02em;
-    margin-bottom: 8px;
-  }
-  .metric .value .unit {
-    font-size: 18px;
-    color: var(--brand-readable-mid);
-    font-weight: 400;
-    margin-left: 6px;
-    letter-spacing: 0;
-  }
-  .metric .label {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 14px;
-    color: var(--brand-readable-mid);
-    line-height: 1.4;
-  }
-
-  /* HOSQ logo (bottom-right) — diamond prism + rule + wordmark */
-  .logo {
-    position: absolute;
-    right: 56px;
-    bottom: 28px;
+  /* === Top bar (48px) — mimics the .topbar from reference === */
+  .topbar {
+    flex-shrink: 0;
+    height: 48px;
     display: flex;
     align-items: center;
-    gap: 10px;
-    z-index: 2;
+    gap: 14px;
+    padding: 0 28px;
+    background: var(--hosq-cream);
+    border-bottom: 1px solid var(--hosq-line);
   }
-  .logo .prism {
-    width: 16px;
-    height: 16px;
-    border: 1.5px solid var(--brand-darkest);
-    transform: rotate(45deg);
-    display: inline-block;
-  }
-  .logo .rule {
-    width: 16px;
-    height: 1.5px;
-    background: var(--brand-darkest);
-  }
-  .logo .wordmark {
-    font-family: var(--font-body);
+  .topbar .brand {
     font-weight: 700;
     font-size: 18px;
-    color: var(--brand-darkest);
     letter-spacing: -0.01em;
-    line-height: 1;
+    color: var(--hosq-dark);
+    text-transform: lowercase;
   }
-
-  .footer-meta {
-    position: absolute;
-    left: 64px;
-    bottom: 32px;
-    font-family: var(--font-body);
-    font-weight: 400;
+  .topbar .brand-tag {
+    font-size: 10px; font-weight: 500;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+    padding: 2px 8px;
+    border: 1px solid var(--hosq-line-2);
+    border-radius: 999px;
+    margin-left: 10px;
+  }
+  .topbar .crumb {
     font-size: 12px;
-    color: var(--brand-readable-mid);
+    color: var(--hosq-ink-2);
+    margin-left: 8px;
+  }
+  .topbar .crumb .sep { color: var(--hosq-ink-3); margin: 0 8px; }
+  .topbar .spacer { flex: 1; }
+  .topbar .meta {
+    font-size: 11px;
+    color: var(--hosq-ink-2);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+  }
+  .topbar .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--hosq-paper);
+    font-size: 11px; font-weight: 600;
     letter-spacing: 0.04em;
-    z-index: 2;
+    color: var(--hosq-dark);
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+  .topbar .pill .dot {
+    width: 6px; height: 6px; border-radius: 999px;
+    background: var(--hosq-coral);
   }
 
-  /* === TITLE SLIDE — gradient/split composition === */
-  .slide.title {
-    background:
-      linear-gradient(135deg, var(--brand-primary) 0%, var(--brand-secondary) 100%);
-    padding: 64px;
-    color: var(--brand-darkest);
+  /* === Document area === */
+  .doc {
+    flex: 1;
+    padding: 44px 64px 28px;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
   }
-  .slide.title .title-top { position: absolute; left: 64px; right: 64px; top: 64px; display: flex; justify-content: space-between; }
-  .slide.title .title-main { position: absolute; left: 64px; right: 64px; top: 200px; }
-  .slide.title .title-bottom { position: absolute; left: 64px; right: 64px; bottom: 84px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .doc-eyebrow {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+  }
+  .doc-eyebrow .sep {
+    width: 4px; height: 4px; border-radius: 999px;
+    background: var(--hosq-ink-3);
+  }
+  .doc-eyebrow .num { font-variant-numeric: tabular-nums; }
 
-  /* Organic blob decorations — soft, blurred, emerald + pink */
-  .slide.title::before {
-    content: "";
-    position: absolute;
-    width: 520px;
-    height: 520px;
-    border-radius: 50%;
-    background: var(--brand-accent);
-    opacity: 0.35;
-    filter: blur(60px);
-    left: -120px;
-    bottom: -160px;
-    z-index: 0;
-  }
-  .slide.title::after {
-    content: "";
-    position: absolute;
-    width: 420px;
-    height: 420px;
-    border-radius: 50%;
-    background: var(--brand-accent-pink);
-    opacity: 0.30;
-    filter: blur(60px);
-    right: -80px;
-    top: -100px;
-    z-index: 0;
-  }
-  .slide.title > * { position: relative; z-index: 1; }
-
-  .title-eyebrow {
-    font-family: var(--font-body);
+  .doc-title {
     font-weight: 700;
-    font-size: 13px;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: var(--brand-darkest);
-    opacity: 0.7;
+    font-size: 38px;
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    color: var(--hosq-dark);
+    max-width: 940px;
+  }
+  .doc-subtitle {
+    font-size: 15px;
+    color: var(--hosq-ink-2);
+    margin: 0 0 22px;
+    max-width: 760px;
+    line-height: 1.55;
   }
 
-  .title-top {
-    display: flex;
-    justify-content: space-between;
+  /* === Chips === */
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: var(--hosq-paper);
+    font-size: 12px; font-weight: 500; line-height: 1.4;
+  }
+  .chip.coral  { background: rgba(255,111,85,0.16); color: #8a2e1c; }
+  .chip.green  { background: rgba(20,182,114,0.16); color: #0a6b41; }
+  .chip.violet { background: rgba(196,124,241,0.16); color: #6e2da7; }
+  .chip.blue   { background: rgba(86,164,203,0.18); color: #2c627c; }
+  .chip.dark   { background: var(--hosq-dark); color: var(--hosq-cream); }
+  .chip-row { display: inline-flex; flex-wrap: wrap; gap: 6px; }
+
+  /* === Hairline list === */
+  .h-list { display: flex; flex-direction: column; }
+  .h-list > .row {
+    display: grid;
+    grid-template-columns: 24px 1fr auto;
+    gap: 14px;
     align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--hosq-line);
+    font-size: 15px;
+    line-height: 1.55;
+  }
+  .h-list > .row:first-child { padding-top: 6px; }
+  .h-list > .row:last-child { border-bottom: none; }
+  .h-list > .row .n {
+    font-size: 11px; font-weight: 600;
+    color: var(--hosq-ink-3);
+    letter-spacing: 0.04em;
+    font-variant-numeric: tabular-nums;
+    padding-top: 2px;
+  }
+  .h-list > .row .text { color: var(--hosq-dark); }
+  .h-list > .row .text strong { font-weight: 700; }
+  .h-list > .row .tag {
+    flex-shrink: 0;
+    padding-top: 0;
   }
 
-  .title-bottom {
+  /* === Note (critique pattern) === */
+  .note {
+    margin-top: 18px;
+    padding: 14px 16px;
+    background: var(--hosq-paper);
+    border-left: 3px solid var(--hosq-violet);
+    border-radius: 6px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--hosq-dark);
+    max-width: 860px;
+  }
+  .note.coral { border-left-color: var(--hosq-coral); }
+  .note.green { border-left-color: var(--hosq-green); }
+  .note-head {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+    margin-bottom: 6px;
+  }
+  .note-head .d { width: 6px; height: 6px; border-radius: 999px; background: var(--hosq-violet); }
+  .note.coral .note-head .d { background: var(--hosq-coral); }
+  .note.green .note-head .d { background: var(--hosq-green); }
+  .note p { margin: 0; }
+
+  /* === Score block === */
+  .score-block {
+    background: var(--hosq-paper);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .score-cell .lbl {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+    margin-bottom: 4px; display: block;
+  }
+  .score-cell .val {
+    font-size: 34px; font-weight: 700;
+    line-height: 1; letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    color: var(--hosq-dark);
+  }
+  .score-cell .val .of {
+    font-size: 13px;
+    color: var(--hosq-ink-2);
+    font-weight: 500;
+    margin-left: 4px;
+  }
+  .score-cell .delta {
+    display: inline-block;
+    font-size: 11px; font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 999px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  .delta.up { background: rgba(20,182,114,0.18); color: #0a6b41; }
+  .delta.down { background: rgba(216,85,63,0.16); color: #8a2e1c; }
+  .delta.flat { background: rgba(35,31,32,0.08); color: var(--hosq-ink-2); }
+  .score-cell .sub {
+    font-size: 12px;
+    color: var(--hosq-ink-2);
+    margin-top: 6px;
+    line-height: 1.5;
+  }
+
+  /* === Card (paper, with hairline) === */
+  .card {
+    background: var(--hosq-paper);
+    border-radius: 14px;
+    padding: 18px 20px;
+  }
+  .card .card-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .card .card-eyebrow {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+  }
+  .card h3 {
+    font-size: 17px; font-weight: 700;
+    letter-spacing: -0.005em;
+    margin: 4px 0 12px;
+    color: var(--hosq-dark);
+  }
+  .card .role-list {
+    list-style: none; margin: 0; padding: 0;
+  }
+  .card .role-list li {
+    font-size: 13px;
+    line-height: 1.5;
+    color: var(--hosq-dark);
+    padding: 6px 0;
+    border-bottom: 1px solid var(--hosq-line);
+  }
+  .card .role-list li:last-child { border-bottom: none; }
+
+  /* === Specimen (fact · fact · fact line) === */
+  .specimen {
+    display: flex; flex-wrap: wrap; align-items: center;
+    gap: 4px 10px;
+    font-size: 13px; line-height: 1.65;
+    color: var(--hosq-dark);
+    margin: 6px 0 18px;
+  }
+  .specimen .fact { display: inline-flex; align-items: center; gap: 6px; }
+  .specimen .sep { color: var(--hosq-ink-3); }
+  .specimen .lbl-mini {
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--hosq-ink-3); font-weight: 600;
+    margin-right: 4px;
+  }
+  .specimen strong { font-weight: 700; }
+
+  /* === Two-column grid === */
+  .cols { display: flex; gap: 28px; align-items: stretch; }
+  .cols > * { flex: 1; min-width: 0; }
+  .cols.three { gap: 16px; }
+
+  /* === Hairline footer === */
+  .doc-foot {
+    margin-top: auto;
+    padding-top: 14px;
+    border-top: 1px solid var(--hosq-line);
     display: flex;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
+    font-size: 11px;
+    color: var(--hosq-ink-2);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
+  .doc-foot .left { display: flex; gap: 14px; align-items: center; white-space: nowrap; }
+  .doc-foot .left .sep { color: var(--hosq-ink-3); }
+  .doc-foot .progress {
+    display: inline-flex; align-items: center; gap: 8px;
+    white-space: nowrap;
+  }
+  .doc-foot .bar {
+    width: 80px; height: 3px; background: var(--hosq-line);
+    border-radius: 999px; overflow: hidden;
+  }
+  .doc-foot .bar .fill { display: block; height: 100%; background: var(--hosq-dark); border-radius: 999px; }
 
-  h1.display {
-    font-family: var(--font-body);
-    font-weight: 500;
-    font-size: 84px;
+  /* === Cover slide === */
+  .cover .doc { padding-top: 100px; }
+  .cover .cover-tag-row { display: flex; gap: 8px; margin-bottom: 22px; }
+  .cover-title {
+    font-weight: 700;
+    font-size: 56px;
     line-height: 1.02;
     letter-spacing: -0.025em;
-    color: var(--brand-darkest);
-    margin: 0 0 20px 0;
-    max-width: 1040px;
+    margin: 0 0 16px;
+    color: var(--hosq-dark);
+    max-width: 980px;
   }
-
-  .title-subtitle {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 20px;
-    line-height: 1.45;
-    color: var(--brand-darkest);
-    opacity: 0.78;
-    max-width: 640px;
-    margin: 0;
-  }
-
-  .slide.title .logo { position: static; }
-  .slide.title .logo .prism,
-  .slide.title .logo .rule { border-color: var(--brand-darkest); background-color: var(--brand-darkest); }
-  .slide.title .logo .wordmark { color: var(--brand-darkest); }
-
-  /* Subtle blob decoration on content slides */
-  .blob {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(50px);
-    z-index: 0;
-    pointer-events: none;
-  }
-
-  /* Compact list for the ask slide */
-  ul.minimal {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  ul.minimal li {
-    font-family: var(--font-body);
-    font-weight: 400;
-    font-size: 17px;
+  .cover-subtitle {
+    font-size: 18px;
+    color: var(--hosq-ink-2);
     line-height: 1.55;
-    color: var(--brand-darkest);
-    padding: 10px 0;
-    border-bottom: 1px solid var(--brand-light);
+    margin: 0 0 36px;
+    max-width: 720px;
   }
-  ul.minimal li:last-child { border-bottom: none; }
+  .cover-meta {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0,1fr));
+    gap: 24px;
+    max-width: 880px;
+    margin-top: auto;
+    padding-top: 22px;
+    border-top: 1px solid var(--hosq-line);
+  }
+  .cover-meta .cell .lbl {
+    font-size: 9px; font-weight: 600;
+    letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--hosq-ink-2);
+    margin-bottom: 4px;
+    display: block;
+  }
+  .cover-meta .cell .val {
+    font-size: 14px;
+    color: var(--hosq-dark);
+    font-weight: 500;
+    line-height: 1.3;
+  }
 
-  strong { font-weight: 700; color: var(--brand-darkest); }
-  em { font-style: normal; color: var(--brand-primary); font-weight: 500; }
+  strong { font-weight: 700; color: var(--hosq-dark); }
 
+  /* "ink2" color helper */
+  .muted { color: var(--hosq-ink-2); }
+  .tabular { font-variant-numeric: tabular-nums; }
 </style>
 </head>
 <body>
 
-<!-- SLIDE 0 — Title (split-composition cover) -->
-<section class="slide title">
-  <div class="title-top">
-    <div class="title-eyebrow">cios · delivery strategy</div>
-    <div class="title-eyebrow">2026</div>
+<!-- === SLIDE 0 — COVER === -->
+<section class="slide cover">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy</span>
+    <span class="spacer"></span>
+    <span class="pill"><span class="dot"></span> draft</span>
+    <span class="meta">2026 · prepared by nikolai &amp; nikita</span>
   </div>
 
-  <div class="title-main">
-    <div class="tag" style="background: rgba(255,255,255,0.85); margin-bottom: 24px;">a memo</div>
-    <h1 class="display">building the delivery layer for cios</h1>
-    <p class="title-subtitle">from product ideas to reliable fund delivery — why the team needs a second developer now.</p>
-  </div>
+  <div class="doc">
+    <div class="cover-tag-row">
+      <span class="chip violet">internal</span>
+      <span class="chip">cios · delivery</span>
+      <span class="chip dark">v0.1</span>
+    </div>
+    <h1 class="cover-title">building the delivery layer for cios</h1>
+    <p class="cover-subtitle">from product ideas to reliable fund delivery — why the team needs a second developer now.</p>
 
-  <div class="title-bottom">
-    <div class="title-eyebrow">prepared by — nikolai &amp; nikita</div>
-    <div class="logo">
-      <span class="prism"></span>
-      <span class="rule"></span>
-      <span class="wordmark">hosq</span>
+    <div class="cover-meta">
+      <div class="cell">
+        <span class="lbl">topic</span>
+        <span class="val">team capacity &amp; fund-facing delivery</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">audience</span>
+        <span class="val">cios leadership</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">decision needed</span>
+        <span class="val">approve hire — product / impl. engineer</span>
+      </div>
+      <div class="cell">
+        <span class="lbl">length</span>
+        <span class="val tabular">6 sections · ~7 min read</span>
+      </div>
+    </div>
+
+    <div class="doc-foot" style="margin-top: 18px;">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>cios</span></div>
+      <div class="progress"><span>00 / 06</span><span class="bar"><span class="fill" style="width: 0%;"></span></span></div>
     </div>
   </div>
 </section>
 
-<!-- SLIDE 1 — Why now -->
-<section class="slide content">
-  <div class="blob" style="width:260px;height:260px;background:var(--brand-secondary);opacity:0.12;right:-40px;bottom:-60px;"></div>
 
-  <div class="category"><span class="num">01 / 06</span>context — why now</div>
-  <h1 class="slide-title">cios is entering a new delivery phase.</h1>
-
-  <ul class="list" style="max-width: 980px;">
-    <li><span class="marker">→</span><div><strong>green rock</strong> and <strong>chiron</strong> are already aligning on evaluation metrics.</div></li>
-    <li><span class="marker">→</span><div>we need to roll out concrete products for funds — beginning with the <strong>evaluator</strong>.</div></li>
-    <li><span class="marker">→</span><div>cios is moving from internal building to external delivery.</div></li>
-  </ul>
-
-  <div class="statement">
-    <div class="label">a note</div>
-    <p>this is no longer only a product-building effort — it is becoming a client-facing delivery system.</p>
+<!-- === SLIDE 1 — Why now === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> context</span>
+    <span class="spacer"></span>
+    <span class="meta">01 / 06</span>
   </div>
 
-  <div class="footer-meta">cios · delivery strategy · 01</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">01</span><span class="sep"></span><span>context</span><span class="sep"></span><span>why now</span>
+    </div>
+    <h2 class="doc-title">cios is entering a new delivery phase.</h2>
+    <div class="specimen">
+      <span class="fact"><span class="lbl-mini">funds aligned</span><strong>2</strong></span>
+      <span class="sep">·</span>
+      <span class="fact"><span class="lbl-mini">first product</span><strong>evaluator</strong></span>
+      <span class="sep">·</span>
+      <span class="fact"><span class="lbl-mini">phase</span><strong>internal → external</strong></span>
+    </div>
+
+    <div class="h-list" style="max-width: 940px;">
+      <div class="row">
+        <span class="n">01</span>
+        <span class="text"><strong>green rock</strong> and <strong>chiron</strong> are already aligning on evaluation metrics.</span>
+        <span class="tag"><span class="chip green">aligned</span></span>
+      </div>
+      <div class="row">
+        <span class="n">02</span>
+        <span class="text">we need to roll out concrete products for funds — beginning with the <strong>evaluator</strong>.</span>
+        <span class="tag"><span class="chip coral">in flight</span></span>
+      </div>
+      <div class="row">
+        <span class="n">03</span>
+        <span class="text">cios is moving from internal building to external delivery.</span>
+        <span class="tag"><span class="chip violet">shift</span></span>
+      </div>
+    </div>
+
+    <div class="note">
+      <div class="note-head"><span class="d"></span> note</div>
+      <p>this is no longer only a product-building effort — it is becoming a client-facing delivery system.</p>
+    </div>
+
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>context — why now</span></div>
+      <div class="progress"><span>01 / 06</span><span class="bar"><span class="fill" style="width: 16%;"></span></span></div>
+    </div>
+  </div>
 </section>
 
-<!-- SLIDE 2 — The bottleneck -->
-<section class="slide content">
-  <div class="blob" style="width:220px;height:220px;background:var(--brand-primary);opacity:0.10;left:-60px;top:160px;"></div>
 
-  <div class="category"><span class="num">02 / 06</span>the bottleneck</div>
-  <h1 class="slide-title" style="font-size:48px;">our limitation is delivery bandwidth — not ideas.</h1>
+<!-- === SLIDE 2 — Bottleneck === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> diagnosis</span>
+    <span class="spacer"></span>
+    <span class="meta">02 / 06</span>
+  </div>
 
-  <div class="grid-2" style="margin-top: 12px;">
-    <div>
-      <ul class="list" style="margin-bottom: 12px;">
-        <li><span class="marker">→</span><div>nikolai has already designed multiple product interfaces and solutions.</div></li>
-        <li><span class="marker">→</span><div>the target operating model is locked in.</div></li>
-        <li><span class="marker">→</span><div>currently blocked because key technical capacity is split across too many functions.</div></li>
-      </ul>
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">02</span><span class="sep"></span><span>diagnosis</span><span class="sep"></span><span>the bottleneck</span>
+    </div>
+    <h2 class="doc-title">our limitation is delivery bandwidth — not ideas.</h2>
 
-      <div class="grid-2" style="gap: 16px; margin-top: 20px;">
-        <div class="metric">
-          <div class="value">3–5<span class="unit">days</span></div>
-          <div class="label">idea to showable prototype</div>
+    <div class="cols" style="margin-top: 12px;">
+      <div>
+        <div class="h-list">
+          <div class="row">
+            <span class="n">01</span>
+            <span class="text">nikolai has designed multiple product interfaces and solutions.</span>
+            <span class="tag"></span>
+          </div>
+          <div class="row">
+            <span class="n">02</span>
+            <span class="text">the target operating model is locked in.</span>
+            <span class="tag"></span>
+          </div>
+          <div class="row">
+            <span class="n">03</span>
+            <span class="text">currently blocked — key technical capacity is split across too many functions.</span>
+            <span class="tag"><span class="chip coral">blocker</span></span>
+          </div>
         </div>
-        <div class="metric">
-          <div class="value">1–2<span class="unit">weeks</span></div>
-          <div class="label">full validation loop with a fund</div>
+
+        <div class="score-block" style="margin-top: 18px;">
+          <div class="score-row">
+            <div class="score-cell">
+              <span class="lbl">target — prototype</span>
+              <div class="val">3–5 <span class="of">days</span></div>
+              <div class="sub">idea to showable</div>
+            </div>
+            <div class="score-cell">
+              <span class="lbl">target — full loop</span>
+              <div class="val">1–2 <span class="of">weeks</span></div>
+              <div class="sub">validation with a fund</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-eyebrow">evidence</span>
+            <span class="chip coral">delivery</span>
+          </div>
+          <div class="h-list">
+            <div class="row">
+              <span class="n tabular">04</span>
+              <span class="text"><strong>interfaces</strong> waiting for integration.</span>
+              <span class="tag"></span>
+            </div>
+            <div class="row">
+              <span class="n tabular">3w</span>
+              <span class="text"><strong>delay</strong> in testing the fast prototype cycle.</span>
+              <span class="tag"></span>
+            </div>
+            <div class="row">
+              <span class="n">↓</span>
+              <span class="text">core ai / infrastructure slowed by lms + payment + support.</span>
+              <span class="tag"></span>
+            </div>
+          </div>
+        </div>
+
+        <div class="note coral" style="margin-top: 16px;">
+          <div class="note-head"><span class="d"></span> diagnosis</div>
+          <p>we are not constrained by demand or product ideas — we are constrained by execution capacity.</p>
         </div>
       </div>
     </div>
 
-    <div>
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>diagnosis</span></div>
+      <div class="progress"><span>02 / 06</span><span class="bar"><span class="fill" style="width: 33%;"></span></span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- === SLIDE 3 — What must change === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> proposal</span>
+    <span class="spacer"></span>
+    <span class="meta">03 / 06</span>
+  </div>
+
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">03</span><span class="sep"></span><span>proposal</span><span class="sep"></span><span>functional split</span>
+    </div>
+    <h2 class="doc-title" style="font-size: 32px;">separate three functions currently overloaded into one workflow.</h2>
+
+    <div class="cols three" style="margin-top: 12px;">
       <div class="card">
-        <div class="role">evidence</div>
-        <ul style="list-style:none;padding:0;margin:0;">
-          <li style="padding:6px 0;font-size:15px;line-height:1.5;"><strong>4 interfaces</strong> waiting for integration.</li>
-          <li style="padding:6px 0;font-size:15px;line-height:1.5;"><strong>3 weeks</strong> of delay in testing the fast prototype cycle.</li>
-          <li style="padding:6px 0;font-size:15px;line-height:1.5;">core ai / infrastructure work slowed by lms + payment + support.</li>
+        <div class="card-head">
+          <span class="card-eyebrow">person</span>
+          <span class="chip coral">discovery</span>
+        </div>
+        <h3>nikolai</h3>
+        <ul class="role-list">
+          <li>product discovery with funds</li>
+          <li>workflow analysis</li>
+          <li>solution design</li>
+          <li>demo / feedback / iteration loop</li>
         </ul>
       </div>
-      <div class="statement" style="margin-top: 18px;">
-        <div class="label">a note</div>
-        <p>we are not constrained by demand or product ideas — we are constrained by execution capacity.</p>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-eyebrow">person</span>
+          <span class="chip violet">core</span>
+        </div>
+        <h3>nikita</h3>
+        <ul class="role-list">
+          <li>core infrastructure</li>
+          <li>architecture</li>
+          <li>ai / backend</li>
+          <li>complex technical systems</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <span class="card-eyebrow">to hire</span>
+          <span class="chip green">delivery</span>
+        </div>
+        <h3>new hire</h3>
+        <ul class="role-list">
+          <li>maintenance &amp; reliability</li>
+          <li>productionization</li>
+          <li>integration support</li>
+          <li>fund-facing release support</li>
+        </ul>
       </div>
     </div>
-  </div>
 
-  <div class="footer-meta">cios · delivery strategy · 02</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
+    <div class="note green">
+      <div class="note-head"><span class="d"></span> proposal</div>
+      <p>the team does not need more help — it needs a correct functional split.</p>
+    </div>
+
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>proposal</span></div>
+      <div class="progress"><span>03 / 06</span><span class="bar"><span class="fill" style="width: 50%;"></span></span></div>
+    </div>
+  </div>
 </section>
 
-<!-- SLIDE 3 — What must change -->
-<section class="slide content">
-  <div class="category"><span class="num">03 / 06</span>what must change</div>
-  <h1 class="slide-title" style="font-size:42px;">separate three functions currently overloaded into one workflow.</h1>
 
-  <div class="grid-3" style="margin-top: 8px;">
-    <div class="card accent-coral">
-      <div class="role">person</div>
-      <h3>nikolai</h3>
-      <ul>
-        <li>product discovery with funds</li>
-        <li>workflow analysis</li>
-        <li>solution design</li>
-        <li>demo / feedback / iteration loop</li>
-      </ul>
-    </div>
-
-    <div class="card accent-violet">
-      <div class="role">person</div>
-      <h3>nikita</h3>
-      <ul>
-        <li>core infrastructure</li>
-        <li>architecture</li>
-        <li>ai / backend / complex technical systems</li>
-      </ul>
-    </div>
-
-    <div class="card accent-green">
-      <div class="role">to hire</div>
-      <h3>new hire</h3>
-      <ul>
-        <li>maintenance &amp; reliability</li>
-        <li>productionization</li>
-        <li>integration support</li>
-        <li>fund-facing release support</li>
-      </ul>
-    </div>
+<!-- === SLIDE 4 — Commercial === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> commercial</span>
+    <span class="spacer"></span>
+    <span class="meta">04 / 06</span>
   </div>
 
-  <div class="statement" style="margin-top: 24px;">
-    <div class="label">a note</div>
-    <p>the team does not need more help — it needs a correct functional split.</p>
-  </div>
-
-  <div class="footer-meta">cios · delivery strategy · 03</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
-</section>
-
-<!-- SLIDE 4 — Commercial -->
-<section class="slide content">
-  <div class="blob" style="width:340px;height:340px;background:var(--brand-accent);opacity:0.10;right:-100px;top:120px;"></div>
-
-  <div class="category"><span class="num">04 / 06</span>commercial impact</div>
-  <h1 class="slide-title" style="font-size:46px;">to charge funds, the system must be reliable and predictable.</h1>
-
-  <div class="grid-2" style="margin-top: 18px; gap: 48px;">
-    <div>
-      <p class="lead" style="margin-bottom: 18px;">funds will not pay for ideas alone. they will pay for the things that make ideas usable.</p>
-      <ul class="minimal">
-        <li>usable tools</li>
-        <li>predictable rollout</li>
-        <li>stable performance</li>
-        <li>ongoing maintenance</li>
-      </ul>
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">04</span><span class="sep"></span><span>commercial</span><span class="sep"></span><span>monetization</span>
     </div>
+    <h2 class="doc-title" style="font-size: 34px;">to charge funds, the system must be reliable and predictable.</h2>
 
-    <div>
-      <div class="statement" style="margin-top: 0; padding-left: 20px;">
-        <div class="label">a note</div>
-        <p>the new hire is part of the commercial model — not just part of the engineering team.</p>
+    <div class="cols" style="margin-top: 14px; gap: 36px;">
+      <div>
+        <p style="font-size:15px; line-height: 1.6; color: var(--hosq-dark); margin: 0 0 14px; max-width: 540px;">
+          funds will not pay for ideas alone. they will pay for the things that make ideas usable.
+        </p>
+        <div class="chip-row" style="margin-bottom: 18px;">
+          <span class="chip green">usable tools</span>
+          <span class="chip green">predictable rollout</span>
+          <span class="chip green">stable performance</span>
+          <span class="chip green">ongoing maintenance</span>
+        </div>
+        <p style="font-size: 13px; color: var(--hosq-ink-2); line-height: 1.55; margin: 0; max-width: 480px;">
+          without a dedicated production / reliability layer, monetization is weaker and slower — and pricing power stays low.
+        </p>
       </div>
-      <p class="meta" style="margin-top: 22px; max-width: 360px;">without a dedicated production / reliability layer, monetization is weaker and slower.</p>
-    </div>
-  </div>
 
-  <div class="footer-meta">cios · delivery strategy · 04</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
-</section>
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <span class="card-eyebrow">positioning shift</span>
+            <span class="chip blue">commercial</span>
+          </div>
+          <div class="h-list">
+            <div class="row">
+              <span class="n">a</span>
+              <span class="text"><strong>ideas only</strong> — weak monetization, slow rollout.</span>
+              <span class="tag"><span class="chip coral">today</span></span>
+            </div>
+            <div class="row">
+              <span class="n">b</span>
+              <span class="text"><strong>ideas + delivery</strong> — predictable, charge-ready.</span>
+              <span class="tag"><span class="chip green">target</span></span>
+            </div>
+          </div>
+        </div>
 
-<!-- SLIDE 5 — Expected outcome -->
-<section class="slide content">
-  <div class="blob" style="width:280px;height:280px;background:var(--brand-secondary);opacity:0.10;left:-80px;bottom:-60px;"></div>
-
-  <div class="category"><span class="num">05 / 06</span>expected outcome</div>
-  <h1 class="slide-title" style="font-size:42px;">a fast product iteration engine across multiple funds.</h1>
-
-  <div class="grid-2" style="margin-top: 10px; gap: 56px;">
-    <div>
-      <h2 class="section-title">with this setup, we can</h2>
-      <ul class="minimal">
-        <li>move nikolai into his highest-value role</li>
-        <li>keep nikita focused on core technical leverage</li>
-        <li>establish a reliable shipping layer for releases</li>
-        <li>run weekly / biweekly validation cycles with funds</li>
-        <li>test products sequentially across 2–3 funds</li>
-      </ul>
-    </div>
-
-    <div>
-      <h2 class="section-title">target operating cadence</h2>
-      <div class="metric" style="margin-bottom: 14px;">
-        <div class="value">3–5<span class="unit">days</span></div>
-        <div class="label">showable prototype</div>
-      </div>
-      <div class="metric">
-        <div class="value">1–2<span class="unit">weeks</span></div>
-        <div class="label">validated loop with a fund</div>
+        <div class="note" style="margin-top: 16px;">
+          <div class="note-head"><span class="d"></span> note</div>
+          <p>the new hire is part of the commercial model — not just part of the engineering team.</p>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="footer-meta">cios · delivery strategy · 05</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>commercial</span></div>
+      <div class="progress"><span>04 / 06</span><span class="bar"><span class="fill" style="width: 66%;"></span></span></div>
+    </div>
+  </div>
 </section>
 
-<!-- SLIDE 6 — The ask -->
-<section class="slide content">
-  <div class="blob" style="width:340px;height:340px;background:var(--brand-primary);opacity:0.12;right:-100px;bottom:-100px;"></div>
 
-  <div class="category"><span class="num">06 / 06</span>the ask</div>
-  <h1 class="slide-title">hire one product / implementation engineer now.</h1>
-
-  <div class="grid-2" style="margin-top: 6px; gap: 48px;">
-    <div>
-      <h2 class="section-title" style="color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.10em; font-size: 13px;">role focus</h2>
-      <ul class="minimal">
-        <li>maintenance and system operability</li>
-        <li>productionization of product interfaces</li>
-        <li>integration support</li>
-        <li>release support for fund-facing products</li>
-      </ul>
-    </div>
-    <div>
-      <h2 class="section-title" style="color: var(--brand-primary); text-transform: uppercase; letter-spacing: 0.10em; font-size: 13px;">business rationale</h2>
-      <ul class="minimal">
-        <li>unlock evaluator rollout</li>
-        <li>support green rock and chiron delivery</li>
-        <li>reduce overload on key people</li>
-        <li>build the delivery layer cios now needs</li>
-      </ul>
-    </div>
+<!-- === SLIDE 5 — Outcome === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> outcome</span>
+    <span class="spacer"></span>
+    <span class="meta">05 / 06</span>
   </div>
 
-  <div class="statement" style="margin-top: 26px;">
-    <div class="label">final note</div>
-    <p>without this role, growth is limited not by market demand — but by delivery bandwidth.</p>
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">05</span><span class="sep"></span><span>outcome</span><span class="sep"></span><span>operating cadence</span>
+    </div>
+    <h2 class="doc-title" style="font-size: 32px;">a fast product iteration engine across multiple funds.</h2>
+
+    <div class="cols" style="margin-top: 12px; gap: 36px;">
+      <div>
+        <div class="doc-eyebrow" style="margin-bottom: 8px;"><span>with this setup, we can</span></div>
+        <div class="h-list">
+          <div class="row"><span class="n">01</span><span class="text">move nikolai into his highest-value role.</span><span class="tag"></span></div>
+          <div class="row"><span class="n">02</span><span class="text">keep nikita focused on core technical leverage.</span><span class="tag"></span></div>
+          <div class="row"><span class="n">03</span><span class="text">establish a reliable shipping layer for releases.</span><span class="tag"></span></div>
+          <div class="row"><span class="n">04</span><span class="text">run weekly / biweekly validation cycles with funds.</span><span class="tag"></span></div>
+          <div class="row"><span class="n">05</span><span class="text">test products sequentially across 2–3 funds.</span><span class="tag"></span></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="score-block">
+          <div class="doc-eyebrow" style="margin-bottom: 14px;"><span>target operating cadence</span></div>
+          <div class="score-row" style="grid-template-columns: 1fr;">
+            <div class="score-cell" style="border-bottom: 1px solid var(--hosq-line); padding-bottom: 14px; margin-bottom: 14px;">
+              <span class="lbl">prototype</span>
+              <div class="val">3–5 <span class="of">days</span> <span class="delta up">▲ from 3w</span></div>
+              <div class="sub">idea to showable prototype</div>
+            </div>
+            <div class="score-cell">
+              <span class="lbl">validated loop</span>
+              <div class="val">1–2 <span class="of">weeks</span> <span class="delta up">▲ new capability</span></div>
+              <div class="sub">full validation cycle with a fund</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="note green" style="margin-top: 16px;">
+          <div class="note-head"><span class="d"></span> outcome</div>
+          <p>this hire increases speed, quality, and monetizable throughput at the same time.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>outcome</span></div>
+      <div class="progress"><span>05 / 06</span><span class="bar"><span class="fill" style="width: 83%;"></span></span></div>
+    </div>
+  </div>
+</section>
+
+
+<!-- === SLIDE 6 — The ask === -->
+<section class="slide">
+  <div class="topbar">
+    <span class="brand">hosq</span>
+    <span class="brand-tag">memo</span>
+    <span class="crumb">cios <span class="sep">/</span> delivery strategy <span class="sep">/</span> decision</span>
+    <span class="spacer"></span>
+    <span class="pill"><span class="dot"></span> decision needed</span>
+    <span class="meta">06 / 06</span>
   </div>
 
-  <div class="footer-meta">cios · delivery strategy · 06</div>
-  <div class="logo"><span class="prism"></span><span class="rule"></span><span class="wordmark">hosq</span></div>
+  <div class="doc">
+    <div class="doc-eyebrow">
+      <span class="num">06</span><span class="sep"></span><span>decision</span><span class="sep"></span><span>the ask</span>
+    </div>
+    <h2 class="doc-title" style="font-size: 32px; margin-bottom: 4px;">hire one product / implementation engineer — now.</h2>
+
+    <div class="cols" style="margin-top: 10px; gap: 32px;">
+      <div>
+        <div class="doc-eyebrow" style="margin-bottom: 4px;"><span>role focus</span></div>
+        <div class="h-list">
+          <div class="row" style="padding: 8px 0;"><span class="n">01</span><span class="text">maintenance and system operability</span><span class="tag"></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">02</span><span class="text">productionization of product interfaces</span><span class="tag"></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">03</span><span class="text">integration support</span><span class="tag"></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">04</span><span class="text">release support for fund-facing products</span><span class="tag"></span></div>
+        </div>
+      </div>
+      <div>
+        <div class="doc-eyebrow" style="margin-bottom: 4px;"><span>business rationale</span></div>
+        <div class="h-list">
+          <div class="row" style="padding: 8px 0;"><span class="n">a</span><span class="text">unlock evaluator rollout</span><span class="tag"><span class="chip green">unblock</span></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">b</span><span class="text">support green rock and chiron delivery</span><span class="tag"><span class="chip green">enable</span></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">c</span><span class="text">reduce overload on key people</span><span class="tag"><span class="chip violet">capacity</span></span></div>
+          <div class="row" style="padding: 8px 0;"><span class="n">d</span><span class="text">build the delivery layer cios now needs</span><span class="tag"><span class="chip coral">strategic</span></span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note coral" style="margin-top: 12px; padding: 10px 14px;">
+      <div class="note-head"><span class="d"></span> final note</div>
+      <p>without this role, growth is limited not by market demand — but by delivery bandwidth.</p>
+    </div>
+
+    <div class="doc-foot">
+      <div class="left"><span>hosq · curator memo</span><span class="sep">·</span><span>decision</span></div>
+      <div class="progress"><span>06 / 06</span><span class="bar"><span class="fill" style="width: 100%;"></span></span></div>
+    </div>
+  </div>
 </section>
 
 </body>
