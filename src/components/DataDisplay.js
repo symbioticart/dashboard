@@ -4,7 +4,7 @@ import { OuraService } from '../services/ouraService';
 // Helper function to format date to YYYY-MM-DD
 const getFormattedDate = (date) => date.toISOString().split('T')[0];
 
-const DataDisplay = ({ token }) => {
+const DataDisplay = ({ token, onDataLoaded }) => {
     const [data, setData] = useState({
         sleep: null,
         heartRate: null,
@@ -42,13 +42,17 @@ const DataDisplay = ({ token }) => {
                 OuraService.getPersonalInfo()
             ]);
 
-            setData({ sleep, heartRate, workout, personalInfo });
+            const fetched = { sleep, heartRate, workout, personalInfo };
+            setData(fetched);
+            // Те же данные уходят в серию полотен: живопись пишется
+            // из того же ответа API, что и таблицы выше.
+            if (onDataLoaded) onDataLoaded(fetched);
         } catch (err) {
             setError('Ошибка при получении данных: ' + err.message);
         } finally {
             setLoading(false);
         }
-    }, [token, selectedStartDate]); // Depend on token and selectedStartDate
+    }, [token, selectedStartDate, onDataLoaded]); // Depend on token and selectedStartDate
 
     useEffect(() => {
         if (token && selectedStartDate) {

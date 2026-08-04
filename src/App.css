@@ -126,4 +126,146 @@
     background: #f8d7da;
     border-radius: 4px;
     margin: 10px 0;
+}
+
+/* Серия «van Gogh / клеточные автоматы».
+   Полотна показываются на тёмном: масло всегда смотрят на тёмном фоне,
+   на белом импасто теряет рельеф. */
+.painting-series {
+    background: #12100e;
+    color: #cfc6b6;
+}
+
+.painting-series h3 {
+    color: #e7dcc7;
+}
+
+.series-note {
+    max-width: 68ch;
+    line-height: 1.55;
+    color: #a89c88;
+    margin-bottom: 20px;
+}
+
+.series-controls {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+}
+
+.series-progress {
+    color: #8d8271;
+    font-size: 13px;
+}
+
+.series-metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+    margin: 0 0 24px;
+    padding: 14px 16px;
+    background: #1b1815;
+    border-radius: 6px;
+}
+
+.series-metrics dt,
+.painting-provenance dt {
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #7d7263;
+    margin-bottom: 3px;
+}
+
+.series-metrics dd,
+.painting-provenance dd {
+    margin: 0;
+    color: #d6ccb9;
+    font-size: 14px;
+}
+
+.painting-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+    gap: 32px;
+}
+
+.painting-card {
+    margin: 0;
+    background: #191614;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.painting-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #0b0908;
+}
+
+.painting-card figcaption {
+    padding: 16px 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.painting-title {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.painting-title strong {
+    color: #ece1cb;
+    font-size: 17px;
+}
+
+.painting-sub {
+    color: #857a6a;
+    font-size: 13px;
+}
+
+.painting-meaning {
+    margin: 0;
+    line-height: 1.5;
+    color: #a1957f;
+    font-size: 14px;
+}
+
+.painting-provenance {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin: 0;
+    font-size: 13px;
+}
+
+.painting-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-hint {
+    opacity: 0.6;
+    font-size: 12px;
+}
+
+.painting-card .btn {
+    align-self: flex-start;
+    background: #2f2a24;
+    color: #ddd2bc;
+}
+
+.painting-card .btn:hover:not(:disabled) {
+    background: #3d372e;
+}
+
+.painting-card .btn:disabled {
+    opacity: 0.45;
+    cursor: default;
 } 
